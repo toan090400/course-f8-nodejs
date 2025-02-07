@@ -8,6 +8,11 @@ const port = 3000;
 // http logger
 app.use(morgan("dev"));
 
+// connect database
+const database = require("./config/db/database");
+database.connect();
+
+// setup routeroute
 const route = require("./routes/index");
 route(app);
 
