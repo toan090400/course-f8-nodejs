@@ -5,6 +5,9 @@ const app = express();
 
 const port = 3000;
 
+// return json data
+app.use(express.json());
+
 // http logger
 app.use(morgan("dev"));
 

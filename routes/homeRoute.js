@@ -3,7 +3,10 @@ const router = express.Router();
 const homeController = require("../controllers/homeController");
 
 router.get("/", homeController.getHome);
-// router.post("/", homeController.getHome);
+
+router.get("/:slug", homeController.detailHome);
+
+router.post("/create", homeController.createHome);
 // router.patch("/", homeController.getHome);
 // router.delete("/", homeController.getHome);
 
