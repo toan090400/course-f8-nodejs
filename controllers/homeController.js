@@ -2,8 +2,21 @@ const Course = require("../models/courseModele");
 
 const getHome = async (req, res) => {
   try {
-    const courses = await Course.find();
+    const courses = await Course.find({});
     res.status(200).json({
+      quantity: courses.length,
+      courses,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+const trashHome = async (req, res) => {
+  try {
+    // findWithDeleted({ deleted: true }) tìm ra các bản có trường deleted: true
+    const courses = await Course.findWithDeleted({ deleted: true });
+    res.status(200).json({
+      title: "thùng rác",
       quantity: courses.length,
       courses,
     });
@@ -27,26 +40,22 @@ const createHome = async (req, res) => {
     const name = await req.body.name;
     const course = await Course.findOne({ name: name });
     if (course) {
-      res.status(400).json({
+      return res.status(400).json({
         course,
         message: "Khóa học đã tồn tại!!!",
       });
-    } else {
-      const slug = await name.replace(/\s+/g, "-");
-
-      const courseCreate = new Course({
-        name,
-        slug: slug,
-        description: req.body.description,
-      });
-
-      await courseCreate.save();
-
-      res.status(200).json({
-        course: courseCreate,
-        message: "Khóa học đã được tạo !!!",
-      });
     }
+    const courseCreate = new Course({
+      name: req.body.name,
+      description: req.body.description,
+    });
+
+    await courseCreate.save();
+
+    res.status(200).json({
+      course: courseCreate,
+      message: "Khóa học đã được tạo !!!",
+    });
   } catch (error) {
     console.log(error);
   }
@@ -79,20 +88,14 @@ const updateHome = async (req, res) => {
     console.log(error);
   }
 };
+// xóa mềm
 const deleteHome = async (req, res) => {
   try {
     const slug = await req.params.slug;
-    const course = await Course.findByIdAndDelete({ _id: slug });
-    if (!course) {
-      // return ở đây để code sẽ dùng lại nếu không tìm thấy nó sẽ không chạy phần code ở dưới
-      return res.status(400).json({
-        course,
-        message: "Khóa học không tồn tại !!!",
-      });
-    }
+    const course = await Course.delete({ _id: slug });
     res.status(200).json({
       course,
-      message: "Xóa khóa học thành công !!!",
+      message: "Xóa mềm khóa học thành công !!!",
     });
   } catch (error) {
     console.log(error);
@@ -100,15 +103,40 @@ const deleteHome = async (req, res) => {
 };
 const restoreHome = async (req, res) => {
   try {
+    const slug = await req.params.slug;
+    const course = await Course.restore({ _id: slug });
+    res.status(200).json({
+      course,
+      message: "Khôi phục khóa học thành công !!!",
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+const destroyHome = async (req, res) => {
+  try {
+    const course = await Course.findByIdAndDelete({ _id: req.params.slug });
+    if (!course) {
+      return res.status(200).json({
+        course,
+        message: "Xóa vĩnh viễn khóa học thất bại !!!",
+      });
+    }
+    res.status(200).json({
+      course,
+      message: "Xóa vĩnh viễn khóa học thành công !!!",
+    });
   } catch (error) {
     console.log(error);
   }
 };
 module.exports = {
   getHome,
+  trashHome,
   detailHome,
   createHome,
   updateHome,
   deleteHome,
   restoreHome,
+  destroyHome,
 };
